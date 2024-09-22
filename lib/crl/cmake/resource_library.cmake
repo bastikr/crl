@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
-
-set(SRM_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
+cmake_minimum_required(VERSION 3.17)
 
 function(add_resource_library TARGET_NAME SOURCE_DIR)
     get_filename_component(SOURCE_DIR "${SOURCE_DIR}" ABSOLUTE)
@@ -17,8 +15,8 @@ function(add_resource_library TARGET_NAME SOURCE_DIR)
         OUTPUT "${output_cpp_file}" "${output_h_file}"
         COMMAND ${CMAKE_COMMAND} -D TARGET_NAME=${TARGET_NAME}
                                  -D SOURCE_DIR=${SOURCE_DIR}
-                                 -P "${SRM_CMAKE_DIR}/generate.cmake"
-        DEPENDS ${RESOURCE_FILES} "${SRM_CMAKE_DIR}/generate.cmake"
+                                 -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate.cmake"
+        DEPENDS ${RESOURCE_FILES} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate.cmake"
         WORKING_DIRECTORY "${target_directory}"
         COMMENT "Creating resource library for ${TARGET_NAME} from  ${SOURCE_DIR}"
         VERBATIM
