@@ -1,0 +1,7 @@
+BasedOnStyle: LLVM
+AlignEscapedNewlines: Left
+IndentWidth: 4
+UseTab: Never
+DeriveLineEnding: false
+UseCRLF: false
+AccessModifierOffset: -4
