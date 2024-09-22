@@ -1,0 +1,53 @@
+Checks: >
+  bugprone-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  fuchsia-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  llvm-*,
+  -llvm-header-guard,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-avoid-const-or-ref-data-members
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -fuchsia-default-arguments-calls,
+  -cppcoreguidelines-virtual-class-destructor,
+  -bugprone-easily-swappable-parameters,
+  -readability-identifier-length,
+  -clang-diagnostic-unused-command-line-argument,
+  -modernize-use-trailing-return-type,
+  -fuchsia-trailing-return,
+  -cppcoreguidelines-pro-type-vararg
+WarningsAsErrors: "*"
+FormatStyle: file
+CheckOptions:
+  - key: cppcoreguidelines-special-member-functions.AllowMissingMoveFunctionsWhenCopyIsDeleted
+    value: true
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+  - key: readability-identifier-naming.UnionCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: g_
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.ProtectedMemberPrefix
+    value: m_
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: UPPER_CASE
+  - key: modernize-use-using.IgnoreExternC
+    value: true
