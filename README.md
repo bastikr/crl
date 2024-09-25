@@ -42,6 +42,10 @@ int main() {
 * CMake 3.17 or higher
 * C++20 compatible compiler
 
+## License
+
+This project is licensed under the MIT License.
+
 ## Installation
 
 This project is CMake based and can be consumed in the typical ways:
