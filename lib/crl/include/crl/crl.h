@@ -7,14 +7,14 @@
 namespace crl {
 
 struct FileEntry {
-  std::string_view name;
-  std::span<const std::byte> data;
+    std::string_view name;
+    std::span<const std::byte> data;
 };
 
 struct DirectoryEntry {
-  std::string_view name;
-  std::span<const DirectoryEntry *const> subdirectories;
-  std::span<const FileEntry *const> files;
+    std::string_view name;
+    std::span<const DirectoryEntry *const> subdirectories;
+    std::span<const FileEntry *const> files;
 };
 
 std::optional<std::span<const std::byte>>
