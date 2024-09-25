@@ -23,11 +23,7 @@ static void print_result(std::optional<std::span<const std::byte>> f) {
 int main() {
     print_result(assets::get_file("logs/source/t.txt"));
 
-    std::string_view b1 = "logs";
-    std::string_view b2 = "/";
-    std::string_view b3 = "source";
-    std::string_view b4 = "/t.txt";
-    std::array<std::string_view, 4> b{b1, b2, b3, b4};
+    std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txt"};
     print_result(assets::get_filev(b));
 
     std::filesystem::path p(__FILE__);
