@@ -1,6 +1,8 @@
 # CMake Resource Library
 
-Embed a whole directory tree into a C++ binary. Usage in CMakeLists.txt:
+Embed a whole directory tree into a C++ binary. No dynamic memory allocation access is provided from within your C++ code.
+
+Usage in CMakeLists.txt:
 
 ```cmake
 # Add the resource library
@@ -18,15 +20,18 @@ This creates a cmake library which contains all the files contained in the provi
 #include <assets.h>
 
 int main() {
-    // Runtime access (file might not exist)
-    std::optional<crl::FileEntry&> ok_icon = assets::get("icons/ok.png");
-    std::span<const std::byte> content = ok_icon.content;
-
-    // Static access (compiler checks the file is available)
-    crl::FileEntry& ok_icon = assets::icons::ok_png;
-    crl::FileEntry& ok_icon = assets::get_static("icons/ok.png");
+    std::optional<std::span<std::byte>> ok_icon = assets::get("icons/cross.png");
 }
 ```
 
-TODO: Can the static variant be done with string literals and constexpr?
+**Features**
+    * No dynamic memory allocations
+    * Re-build automatically when content of source directory changes
 
+## Development
+
+Additional features that might be nice to have:
+* Static access to files using consteval (compile time error when file does not exist): Demonstration implemented in branch "feature/static_access" - however then everything needs to be in header file which might be okay but a better split between dynamic and static access code is needed so that compilation is possible when only dynamic access is used.
+* C interface
+* Maybe C++ interfaces < C++20
+* gperf for optimal hashes for dynamic get function
