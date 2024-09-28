@@ -62,7 +62,7 @@ function(write_cpp_outro target_name target_path)
     file(APPEND "${target_path}"
 "
 const crl::DirectoryEntry& root() {
-    return directory_root;
+    return DIRECTORY_ROOT;
 }
 
 std::optional<std::span<const std::byte>> get_file(std::string_view path) {
@@ -104,7 +104,7 @@ function(write_file_entry file_index file_path target_path)
     cmake_path(GET file_path FILENAME file_name)
     file(APPEND
         "${target_path}"
-        "constexpr FileEntry file_${file_index} = { \"${file_name}\", FILE_${file_index}_DATA };\n\n"
+        "constexpr FileEntry FILE_${file_index} = { \"${file_name}\", FILE_${file_index}_DATA };\n\n"
     )
 endfunction()
 
@@ -186,26 +186,26 @@ endfunction()
 
 function(write_directory_subdirectories dir dir_index subdirectories resource_directories target_file)
     list(LENGTH subdirectories subdirs_length)
-    file(APPEND "${target_file}" "constexpr std::array<const DirectoryEntry*, ${subdirs_length}> directory_${dir_index}_subdirectories = {")
+    file(APPEND "${target_file}" "constexpr std::array<const DirectoryEntry*, ${subdirs_length}> DIRECTORY_${dir_index}_SUBDIRECTORIES = {")
     foreach(subdir IN LISTS subdirectories)
         list(FIND resource_directories "${subdir}" index)
         if (${index} EQUAL -1)
             message(FATAL_ERROR "Internal error: directory '${subdir}' is not part of the resource directories: '${resource_directories}'")
         endif()
-        file(APPEND "${target_file}" "&directory_${index},")
+        file(APPEND "${target_file}" "&DIRECTORY_${index},")
     endforeach()
     file(APPEND "${target_file}" "};\n")
 endfunction()
 
 function(write_directory_subfiles dir dir_index subfiles resource_files target_file)
     list(LENGTH subfiles subfiles_length)
-    file(APPEND "${target_file}" "constexpr std::array<const FileEntry*, ${subfiles_length}> directory_${dir_index}_subfiles = {")
+    file(APPEND "${target_file}" "constexpr std::array<const FileEntry*, ${subfiles_length}> DIRECTORY_${dir_index}_SUBFILES = {")
     foreach(subfile IN LISTS subfiles)
         list(FIND resource_files "${subfile}" index)
         if (${index} EQUAL -1)
             message(FATAL_ERROR "Internal error: file '${subfile}' is not part of the resource files: '${resource_files}'")
         endif()
-        file(APPEND "${target_file}" "&file_${index},")
+        file(APPEND "${target_file}" "&FILE_${index},")
     endforeach()
     file(APPEND "${target_file}" "};\n")
 endfunction()
@@ -223,13 +223,13 @@ function(write_directory_entries resource_files resource_directories target_file
         write_directory_subdirectories("${dir}" "${dir_index}" "${subdirs}" "${resource_directories}" "${target_file}")
         write_directory_subfiles("${dir}" "${dir_index}" "${subfiles}" "${resource_files}" "${target_file}")
         cmake_path(GET dir FILENAME dir_name)
-        file(APPEND "${target_file}" "constexpr DirectoryEntry directory_${dir_index} = { \"${dir_name}\", directory_${dir_index}_subdirectories, directory_${dir_index}_subfiles };\n\n")
+        file(APPEND "${target_file}" "constexpr DirectoryEntry DIRECTORY_${dir_index} = { \"${dir_name}\", DIRECTORY_${dir_index}_SUBDIRECTORIES, DIRECTORY_${dir_index}_SUBFILES };\n\n")
     endforeach()
     find_children("/" resource_directories subdirs)
     find_children("" resource_files subfiles)
-    write_directory_subdirectories("${dir}" "root" "${subdirs}" "${resource_directories}" "${target_file}")
-    write_directory_subfiles("${dir}" "root" "${subfiles}" "${resource_files}" "${target_file}")
-    file(APPEND "${target_file}" "constexpr DirectoryEntry directory_root = { \"\", directory_root_subdirectories, directory_root_subfiles };\n\n")
+    write_directory_subdirectories("${dir}" "ROOT" "${subdirs}" "${resource_directories}" "${target_file}")
+    write_directory_subfiles("${dir}" "ROOT" "${subfiles}" "${resource_files}" "${target_file}")
+    file(APPEND "${target_file}" "constexpr DirectoryEntry DIRECTORY_ROOT = { \"\", DIRECTORY_ROOT_SUBDIRECTORIES, DIRECTORY_ROOT_SUBFILES };\n\n")
 endfunction()
 
 function(main)
