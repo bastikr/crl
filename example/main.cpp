@@ -26,6 +26,8 @@ int main() {
     std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txt"};
     print_result(assets::get_filev(b));
 
+    print_result(assets::get<"logs/source/t.txt">());
+
     std::filesystem::path p(__FILE__);
     std::string asset_dir = p.parent_path() / "assets";
     crl::HotReloader hot_reloader(asset_dir);
