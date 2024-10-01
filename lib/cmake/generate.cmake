@@ -281,6 +281,13 @@ function(main)
     if(NOT IS_DIRECTORY "${SOURCE_DIR}")
         message(FATAL_ERROR "The source directory '${SOURCE_DIR}' provided for the resource library does not exist.")
     endif()
+    if(ENABLE_GPERF)
+        find_program(GPERF_EXECUTABLE gperf)
+        if(NOT GPERF_EXECUTABLE)
+            message(FATAL_ERROR "gperf is required but was not found. Please install gperf and ensure it's in your PATH.")
+        endif()
+        message(STATUS "Found gperf at: ${GPERF_EXECUTABLE}")
+    endif()
     file(GLOB_RECURSE resource_files RELATIVE "${SOURCE_DIR}" "${SOURCE_DIR}/*")
     expand_directories("${resource_files}" resource_directories)
 
@@ -301,8 +308,20 @@ function(main)
     if (ENABLE_GPERF)
         message(STATUS "generate gperf code for resource library ${TARGET_NAME}")
         write_gperf_input_file("${TARGET_NAME}" "${resource_files}" "${output_gperf_file}")
-        execute_process(COMMAND gperf "${output_gperf_file}" OUTPUT_VARIABLE gperf_cpp)
-        file(APPEND "${output_cpp_file}" "${gperf_cpp}")
+        execute_process(
+            COMMAND
+                ${GPERF_EXECUTABLE} "${output_gperf_file}"
+            OUTPUT_VARIABLE
+                gperf_output
+            ERROR_VARIABLE
+                gperf_error_output
+            RESULT_VARIABLE
+                gperf_result
+        )
+        if(NOT gperf_result EQUAL 0)
+            message(FATAL_ERROR "gperf failed with error:\n${gperf_error_output}")
+        endif()
+        file(APPEND "${output_cpp_file}" "${gperf_output}")
     endif()
 endfunction()
 
