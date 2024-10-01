@@ -41,22 +41,8 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Install gperf on Linux
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y gperf
-
-    - name: Install gperf on macOS
-      if: runner.os == 'macOS'
-      run: |
-        brew update
-        brew install gperf
-
-    - name: Install gperf on Windows
-      if: runner.os == 'Windows'
-      run: |
-        choco install gperf --yes
+    - name: Install gperf
+      uses: ./.github/actions/install-gperf
 
     - name: Verify gperf Installation
       run: |
