@@ -23,13 +23,19 @@ std::span<const std::byte, File<Path>::CONTENT.size()> get() {
     )
 endfunction()
 
-function(write_header_outro target_name target_path)
+function(write_header_outro target_name target_path enable_gperf)
+    if(enable_gperf)
+        set(gperf_function_declaration "std::optional<std::span<const std::byte>> get_file_ph(std::string_view path);\n")
+    else()
+        set(gperf_function_declaration "")
+    endif()
+
     file(APPEND "${target_path}"
 "const crl::DirectoryEntry& root();
 
 std::optional<std::span<const std::byte>> get_file(std::string_view path);
 std::optional<std::span<const std::byte>> get_filev(std::span<std::string_view> path);
-
+${gperf_function_declaration}
 } // namespace ${target_name}
 "
     )
@@ -232,6 +238,45 @@ function(write_directory_entries resource_files resource_directories target_file
     file(APPEND "${target_file}" "constexpr DirectoryEntry DIRECTORY_ROOT = { \"\", DIRECTORY_ROOT_SUBDIRECTORIES, DIRECTORY_ROOT_SUBFILES };\n\n")
 endfunction()
 
+function(write_gperf_input_file target_name resource_files target_path)
+    file(WRITE "${target_path}"
+"%{
+#include <${target_name}.h>
+
+#include <cstring>
+
+namespace ${target_name} {
+
+%}
+%struct-type
+%language=C++
+%compare-strncmp
+%readonly-tables
+%enum
+%switch=1
+%define class-name PerfectHash
+struct PerfectHashResult { const char *name; std::span<const std::byte> data; };
+%%
+")
+    set(index 0)
+    foreach(resource_file IN LISTS resource_files)
+        file(APPEND "${target_path}" "${resource_file}, ${target_name}::FILE_${index}_DATA\n")
+        math(EXPR index "${index} + 1")
+    endforeach()
+file(APPEND "${target_path}"
+"%%
+std::optional<std::span<const std::byte>> get_file_ph(std::string_view path) {
+    const PerfectHashResult *f = PerfectHash::in_word_set(path.data(), path.size());
+    if (f == nullptr) {
+        return {};
+    }
+    return f->data;
+}
+
+} // namespace ${target_name}
+")
+endfunction()
+
 function(main)
     if(NOT IS_DIRECTORY "${SOURCE_DIR}")
         message(FATAL_ERROR "The source directory '${SOURCE_DIR}' provided for the resource library does not exist.")
@@ -241,6 +286,8 @@ function(main)
 
     set(output_cpp_file "src/${TARGET_NAME}.cpp")
     set(output_h_file "include/${TARGET_NAME}.h")
+    set(output_gperf_file "paths.gperf")
+    set(output_gperf_cpp_file "src/${TARGET_NAME}_gperf.cpp")
 
     write_cpp_intro("${TARGET_NAME}" "${output_cpp_file}")
     write_file_entries("${SOURCE_DIR}" "${resource_files}" "${output_cpp_file}" resource_sizes)
@@ -249,7 +296,14 @@ function(main)
 
     write_header_intro("${TARGET_NAME}" "${output_h_file}")
     write_header_file_entries("${resource_files}" "${resource_sizes}" "${output_h_file}")
-    write_header_outro("${TARGET_NAME}" "${output_h_file}")
+    write_header_outro("${TARGET_NAME}" "${output_h_file}" ${ENABLE_GPERF})
+
+    if (ENABLE_GPERF)
+        message(STATUS "generate gperf code for resource library ${TARGET_NAME}")
+        write_gperf_input_file("${TARGET_NAME}" "${resource_files}" "${output_gperf_file}")
+        execute_process(COMMAND gperf "${output_gperf_file}" OUTPUT_VARIABLE gperf_cpp)
+        file(APPEND "${output_cpp_file}" "${gperf_cpp}")
+    endif()
 endfunction()
 
 main()
