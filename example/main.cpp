@@ -31,7 +31,7 @@ int main() {
     print_result(assets::get<"logs/source/t.txt">());
 
     std::filesystem::path p(__FILE__);
-    std::string asset_dir = p.parent_path() / "assets";
+    std::string asset_dir = (p.parent_path() / "assets").string();
     crl::HotReloader hot_reloader(asset_dir);
     print_result(hot_reloader.get("logs/source/t.txt"));
 }
