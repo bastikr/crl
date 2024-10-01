@@ -26,6 +26,8 @@ int main() {
     std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txt"};
     print_result(assets::get_filev(b));
 
+    print_result(assets::get_file_ph("logs/source/t.txt"));
+
     print_result(assets::get<"logs/source/t.txt">());
 
     std::filesystem::path p(__FILE__);

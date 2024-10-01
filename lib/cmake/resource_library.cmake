@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.17)
 
+# add_resource_library(<target_name> <source_dir> [GPERF])
 function(add_resource_library TARGET_NAME SOURCE_DIR)
+    set(options "GPERF")
+    set(oneValueArgs "")
+    set(multiValueArgs "")
+    cmake_parse_arguments(CRL "${options}" "${oneValueArgs}"
+                        "${multiValueArgs}" ${ARGN})
+
     get_filename_component(SOURCE_DIR "${SOURCE_DIR}" ABSOLUTE)
 
     # Collect all files to rebuild when something changes
@@ -15,6 +22,7 @@ function(add_resource_library TARGET_NAME SOURCE_DIR)
         OUTPUT "${output_cpp_file}" "${output_h_file}"
         COMMAND ${CMAKE_COMMAND} -D TARGET_NAME=${TARGET_NAME}
                                  -D SOURCE_DIR=${SOURCE_DIR}
+                                 -D ENABLE_GPERF=${CRL_GPERF}
                                  -P "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate.cmake"
         DEPENDS ${RESOURCE_FILES} "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate.cmake"
         WORKING_DIRECTORY "${target_directory}"
