@@ -1,0 +1,24 @@
+name: Install gperf
+description: Installs gperf on Linux, macOS, and Windows runners.
+runs:
+  using: "composite"
+  steps:
+    - name: Install gperf on Linux
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gperf
+
+    - name: Install gperf on macOS
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew update
+        brew install gperf
+
+    - name: Install gperf on Windows
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        choco install gperf --yes
