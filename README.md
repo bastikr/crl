@@ -1,5 +1,7 @@
 # CMake Resource Library
 
+![build status](https://github.com/bastikr/crl/actions/workflows/main.yaml/badge.svg)
+
 Embed a whole directory tree into a C++ source file. Easy access from C++ code is provided. No dynamic memory allocations.
 
 Usage in CMakeLists.txt:
@@ -37,6 +39,8 @@ int main() {
 
 * No dynamic memory allocations
 * Re-build automatically when content of source directory changes
+* *Optional*: Perfect hash getter function using [gperf](https://www.gnu.org/software/gperf/)
+* *Optional*: Hot reload for development [crl hot reload](lib/crl_hot_reload/README.md) (Allocating!)
 
 ## Prerequisites
 
@@ -75,7 +79,5 @@ This project consists of several components:
 ## Development
 
 Additional features that might be nice to have:
-* Static access to files using consteval (compile time error when file does not exist): Demonstration implemented in branch "feature/static_access" - however then everything needs to be in header file which might be okay but a better split between dynamic and static access code is needed so that compilation is possible when only dynamic access is used.
 * C interface
 * Maybe C++ interfaces < C++20
-* gperf for optimal hashes for dynamic get function
