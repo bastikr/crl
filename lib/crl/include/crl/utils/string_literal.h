@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string_view>
 
 namespace crl {
 
@@ -16,5 +17,18 @@ template <std::size_t N> struct StringLiteral {
     // NOLINTNEXTLINE(misc-non-private-member-variables-in-classes)
     std::array<char, N> value{};
 };
+
+template <std::size_t N>
+bool operator==(const StringLiteral<N> &a, std::string_view b) {
+    if (b.size() != N - 1) {
+        return false;
+    }
+    for (int i = 0; i < N - 1; ++i) {
+        if (b[i] != a.value[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 } // namespace crl

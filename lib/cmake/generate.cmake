@@ -35,6 +35,7 @@ function(write_header_outro target_name target_path enable_gperf)
 
 std::optional<std::span<const std::byte>> get_file(std::string_view path);
 std::optional<std::span<const std::byte>> get_filev(std::span<std::string_view> path);
+std::optional<std::span<const std::byte>> get_file_strcmp(std::string_view path);
 ${gperf_function_declaration}
 } // namespace ${target_name}
 "
@@ -126,6 +127,16 @@ function(write_file_entries base_dir resource_files target_path out_resource_siz
         math(EXPR index "${index} + 1")
     endforeach()
     set(${out_resource_sizes} "${resource_sizes}" PARENT_SCOPE)
+endfunction()
+
+function(write_strcmp_function resource_files target_path)
+    set(index 0)
+    file(APPEND "${target_path}" "std::optional<std::span<const std::byte>> get_file_strcmp(std::string_view path) {\n")
+    foreach(resource_file IN LISTS resource_files)
+        file(APPEND "${target_path}" "    if (FILE_${index}_PATH == path) {return FILE_${index}_DATA;}\n")
+        math(EXPR index "${index} + 1")
+    endforeach()
+    file(APPEND "${target_path}" "    return {};\n}\n")
 endfunction()
 
 function(write_header_file_entries resource_files resource_sizes target_path)
@@ -297,8 +308,11 @@ function(main)
     set(output_gperf_cpp_file "src/${TARGET_NAME}_gperf.cpp")
 
     write_cpp_intro("${TARGET_NAME}" "${output_cpp_file}")
+    message(STATUS "resource_files: ${resource_files}")
     write_file_entries("${SOURCE_DIR}" "${resource_files}" "${output_cpp_file}" resource_sizes)
     write_directory_entries("${resource_files}" "${resource_directories}" "${output_cpp_file}")
+    message(STATUS "resource_files: ${resource_files}")
+    write_strcmp_function("${resource_files}" "${output_cpp_file}")
     write_cpp_outro("${TARGET_NAME}" "${output_cpp_file}")
 
     write_header_intro("${TARGET_NAME}" "${output_h_file}")
