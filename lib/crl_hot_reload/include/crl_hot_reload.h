@@ -12,7 +12,8 @@ class HotReloader {
 public:
     HotReloader(std::filesystem::path base_dir);
 
-    std::optional<std::span<std::byte>> get(std::string_view relative_path);
+    std::optional<std::span<std::byte>> get(std::string_view path);
+    std::optional<std::span<std::byte>> getv(std::span<std::string_view> path);
 
 private:
     std::filesystem::path m_base_dir;
