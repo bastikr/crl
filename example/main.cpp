@@ -21,17 +21,23 @@ static void print_result(std::optional<std::span<const std::byte>> f) {
 }
 
 int main() {
-    print_result(assets::get_file("logs/source/t.txt"));
+    constexpr std::string_view path = "logs/source/t.txt";
+    std::array<std::string_view, 4> pathv{"logs", "/", "source/t", ".txt"};
 
-    std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txt"};
-    print_result(assets::get_filev(b));
-
-    print_result(assets::get_file_ph("logs/source/t.txt"));
-
+    // Compile time access
     print_result(assets::get<"logs/source/t.txt">());
 
-    std::filesystem::path p(__FILE__);
-    std::string asset_dir = (p.parent_path() / "assets").string();
+    // Virtual directory based
+    print_result(assets::get_file(path));
+    print_result(assets::get_filev(pathv));
+
+    // gperf perfect hashing access
+    print_result(assets::get_file_ph(path));
+
+    // Hot reloader (for development)
+    std::filesystem::path f(__FILE__);
+    std::string asset_dir = (f.parent_path() / "assets").string();
     crl::HotReloader hot_reloader(asset_dir);
-    print_result(hot_reloader.get("logs/source/t.txt"));
+    print_result(hot_reloader.get(path));
+    print_result(hot_reloader.getv(pathv));
 }
