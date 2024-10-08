@@ -56,11 +56,6 @@ function(write_cpp_intro target_name target_path)
 using crl::DirectoryEntry;
 using crl::FileEntry;
 
-template<typename... Ts>
-constexpr std::array<const std::byte, sizeof...(Ts)> make_bytes(Ts&&... args) noexcept {
-    return{std::byte(std::forward<Ts>(args))...};
-}
-
 namespace ${target_name} {
 ")
 endfunction()
@@ -88,7 +83,7 @@ function(write_data_array input_path index target_path out_size)
     file(READ "${input_path}" file_content HEX)
     string(LENGTH "${file_content}" data_length_hex)
     math(EXPR data_length_bytes "${data_length_hex} / 2")
-    file(APPEND "${target_path}" "constexpr std::array<const std::byte, FILE_${index}_SIZE> FILE_${index}_DATA = make_bytes(")
+    file(APPEND "${target_path}" "constexpr std::array<const std::byte, FILE_${index}_SIZE> FILE_${index}_DATA = {")
 
     if(data_length_bytes GREATER 0)
         if(data_length_bytes GREATER 1)
@@ -96,14 +91,14 @@ function(write_data_array input_path index target_path out_size)
             foreach(i RANGE 0 ${data_length_bytes_minus_two})
                 math(EXPR index "2 * ${i}")
                 string(SUBSTRING "${file_content}" ${index} 2 BYTE_HEX)
-                file(APPEND "${target_path}" "0x${BYTE_HEX},")
+                file(APPEND "${target_path}" "std::byte(0x${BYTE_HEX}),")
             endforeach()
         endif()
         math(EXPR index "2 * ${data_length_bytes} - 2")
         string(SUBSTRING "${file_content}" ${index} 2 BYTE_HEX)
-        file(APPEND "${target_path}" "0x${BYTE_HEX}")
+        file(APPEND "${target_path}" "std::byte(0x${BYTE_HEX})")
     endif()
-    file(APPEND "${target_path}" ");\n")
+    file(APPEND "${target_path}" "};\n")
     set(${out_size} "${data_length_bytes}" PARENT_SCOPE)
 endfunction()
 
