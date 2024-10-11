@@ -14,7 +14,9 @@ FetchContent_Declare(
 
 FetchContent_Declare(
   googlebenchmark
-  URL https://github.com/google/benchmark/archive/refs/tags/v1.9.0.zip)
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG v1.9.0
+)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -43,7 +45,7 @@ add_executable(crl_benchmark
   "src/bench.cpp"
 )
 
-add_resource_library(assets "${CMAKE_SOURCE_DIR}/../example/assets/" GPERF)
+add_resource_library(assets "${CMAKE_SOURCE_DIR}/../tools/build/testsets_num10_depth2/" GPERF)
 
 target_link_libraries(crl_benchmark
     PRIVATE

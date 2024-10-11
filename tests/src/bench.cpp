@@ -1,81 +1,70 @@
 #include <benchmark/benchmark.h>
 
 #include <assets.h>
+#include <cstdio>
+#include <string>
+#include <string_view>
 
-static void bench_get_file_found(benchmark::State &state) {
+static std::string g_PATH;
+static std::array<std::string_view, 4> g_PATHV;
+static bool g_EXISTS;
+
+static void bench_get_file(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_file("logs/source/t.txt");
-        assert(r.has_value());
+        auto r = assets::get_file(g_PATH);
+        assert(r.has_value() == g_EXISTS);
     }
 }
 
-static void bench_get_file_not_found(benchmark::State &state) {
+static void bench_get_filev(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_file("logs/source/t.txd");
-        assert(!r.has_value());
+        auto r = assets::get_filev(g_PATHV);
+        assert(r.has_value() == g_EXISTS);
     }
 }
 
-static void bench_get_filev_found(benchmark::State &state) {
-    std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txt"};
+static void bench_get_file_ph(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_filev(b);
-        assert(r.has_value());
+        auto r = assets::get_file_ph(g_PATH);
+        assert(r.has_value() == g_EXISTS);
     }
 }
 
-static void bench_get_filev_not_found(benchmark::State &state) {
-    std::array<std::string_view, 4> b{"logs", "/", "source/t", ".txd"};
+static void bench_get_file_strcmp(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_filev(b);
-        assert(!r.has_value());
+        auto r = assets::get_file_strcmp(g_PATH);
+        assert(r.has_value() == g_EXISTS);
     }
 }
 
-static void bench_get_file_static(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get<"logs/source/t.txt">();
-        assert(r.size() > 1);
+BENCHMARK(bench_get_file);
+BENCHMARK(bench_get_filev);
+BENCHMARK(bench_get_file_ph);
+BENCHMARK(bench_get_file_strcmp);
+
+void usage() { printf("Usage: <path> <exists> [gperf args...]\n"); }
+
+int main(int argc, char **argv) {
+    if (argc != 3) {
+        usage();
+        return 1;
     }
-}
-
-static void bench_get_file_ph_found(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_ph("logs/source/t.txt");
-        assert(r.has_value());
+    std::string exists{argv[2]};
+    if (exists == "true") {
+        g_EXISTS = true;
+    } else if (exists == "false") {
+        g_EXISTS = false;
+    } else {
+        usage();
+        return 1;
     }
+    g_PATH = argv[1];
+    int l = g_PATHV.size() / 4;
+    std::get<0>(g_PATHV) = std::string_view(g_PATH).substr(0, l);
+    std::get<1>(g_PATHV) = std::string_view(g_PATH).substr(l, l);
+    std::get<2>(g_PATHV) = std::string_view(g_PATH).substr(l + l, l);
+    std::get<3>(g_PATHV) = std::string_view(g_PATH).substr(l + l + l);
+
+    benchmark::Initialize(&argc, argv);
+    benchmark::RunSpecifiedBenchmarks();
 }
-
-static void bench_get_file_ph_not_found(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_ph("logs/source/t.txd");
-        assert(!r.has_value());
-    }
-}
-
-static void bench_get_file_strcmp_found(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_strcmp("logs/source/t.txt");
-        assert(r.has_value());
-    }
-}
-
-static void bench_get_file_strcmp_not_found(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_strcmp("logs/source/t.txd");
-        assert(!r.has_value());
-    }
-}
-
-BENCHMARK(bench_get_file_static);
-
-BENCHMARK(bench_get_file_found);
-BENCHMARK(bench_get_file_not_found);
-BENCHMARK(bench_get_filev_found);
-BENCHMARK(bench_get_filev_not_found);
-BENCHMARK(bench_get_file_ph_found);
-BENCHMARK(bench_get_file_ph_not_found);
-BENCHMARK(bench_get_file_strcmp_found);
-BENCHMARK(bench_get_file_strcmp_not_found);
-
-BENCHMARK_MAIN();
