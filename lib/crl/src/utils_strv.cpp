@@ -1,5 +1,9 @@
 #include <crl/utils/strv.h>
 
+#include <cstddef>
+#include <span>
+#include <string_view>
+
 namespace crl::utils::strv {
 
 size_t sizev(std::span<std::string_view> strv) {
@@ -22,9 +26,10 @@ size_t findv(std::span<std::string_view> strv, size_t start, size_t len,
             continue;
         }
 
-        size_t process_len = std::min(s.size() - start, remaining_len);
-        auto sub_s = s.substr(start, process_len);
-        size_t p = sub_s.find(x);
+        const size_t d = s.size() - start;
+        const size_t process_len = d < remaining_len ? d : remaining_len;
+        const auto sub_s = s.substr(start, process_len);
+        const size_t p = sub_s.find(x);
 
         if (p != std::string_view::npos) {
             return pos + start + p;
@@ -53,7 +58,8 @@ bool equalv(std::span<std::string_view> strv, size_t start, size_t len,
             continue;
         }
 
-        size_t process_len = std::min(s.size() - start, remaining_len);
+        const size_t d = s.size() - start;
+        const size_t process_len = d < remaining_len ? d : remaining_len;
 
         if (pos + process_len > x.size()) {
             return false;

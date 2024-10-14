@@ -2,47 +2,45 @@
 
 #include <crl/utils/strv.h>
 
+#include <array>
+#include <cstddef>
+#include <string_view>
+
 TEST(Crlv, sizev) {
     using crl::utils::strv::sizev;
 
-    std::string_view b0;
-    std::string_view b1 = "1";
-    std::string_view b4 = "1234";
+    const std::string_view b0;
+    const std::string_view b1 = "1";
+    const std::string_view b4 = "1234";
 
     {
         std::array<std::string_view, 0> b{};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 0);
+        ASSERT_EQ(sizev(b), 0);
     }
 
     {
         std::array<std::string_view, 1> b{b0};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 0);
+        ASSERT_EQ(sizev(b), 0);
     }
 
     {
         std::array<std::string_view, 1> b{b1};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 1);
+        ASSERT_EQ(sizev(b), 1);
     }
 
     {
         std::array<std::string_view, 1> b{b4};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 4);
+        ASSERT_EQ(sizev(b), 4);
     }
 
     {
         std::array<std::string_view, 3> b{b0, b4, b0};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 4);
+        ASSERT_EQ(sizev(b), 4);
     }
 
     {
         std::array<std::string_view, 3> b{b4, b1, b4};
-        size_t s = sizev(b);
-        ASSERT_EQ(s, 9);
+        ASSERT_EQ(sizev(b), 9);
     }
 }
 
@@ -50,10 +48,10 @@ TEST(Crlv, findv) {
     using crl::utils::strv::findv;
     using crl::utils::strv::sizev;
 
-    std::string_view b1 = "logs";
-    std::string_view b2 = "/";
-    std::string_view b3 = "source";
-    std::string_view b4 = "/t.txt";
+    const std::string_view b1 = "logs";
+    const std::string_view b2 = "/";
+    const std::string_view b3 = "source";
+    const std::string_view b4 = "/t.txt";
     std::array<std::string_view, 4> b{b1, b2, b3, b4};
 
     size_t p = findv(b, 0, sizev(b), '/');
@@ -72,9 +70,9 @@ TEST(Crlv, findv) {
 
 TEST(Crlv, equalv) {
     using crl::utils::strv::equalv;
-    std::string_view b0;
-    std::string_view b1 = "x";
-    std::string_view b4 = "1234";
+    const std::string_view b0;
+    const std::string_view b1 = "x";
+    const std::string_view b4 = "1234";
 
     {
         std::array<std::string_view, 0> b{};

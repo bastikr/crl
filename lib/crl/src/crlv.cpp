@@ -1,6 +1,12 @@
 #include <crl/crlv.h>
 
+#include <crl/crl.h>
 #include <crl/utils/strv.h>
+
+#include <cstddef>
+#include <optional>
+#include <span>
+#include <string_view>
 
 namespace crl {
 

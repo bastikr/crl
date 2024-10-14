@@ -21,7 +21,8 @@ Checks: >
   -clang-diagnostic-unused-command-line-argument,
   -modernize-use-trailing-return-type,
   -fuchsia-trailing-return,
-  -cppcoreguidelines-pro-type-vararg
+  -cppcoreguidelines-pro-type-vararg,
+  -*-magic-numbers
 WarningsAsErrors: "*"
 FormatStyle: file
 CheckOptions:
@@ -39,8 +40,8 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.VariableCase
     value: lower_case
-  - key: readability-identifier-naming.GlobalVariablePrefix
-    value: g_
+  # - key: readability-identifier-naming.GlobalVariablePrefix
+  #   value: g_
   - key: readability-identifier-naming.MemberCase
     value: lower_case
   - key: readability-identifier-naming.PrivateMemberPrefix

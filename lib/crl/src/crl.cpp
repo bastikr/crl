@@ -1,5 +1,10 @@
 #include <crl/crl.h>
 
+#include <cstddef>
+#include <optional>
+#include <span>
+#include <string_view>
+
 namespace crl {
 
 std::optional<std::span<const std::byte>>
@@ -15,7 +20,7 @@ get_file(const crl::DirectoryEntry &directory, std::string_view path) {
             }
             return {};
         }
-        std::string_view sub_d_name = path.substr(0, pos);
+        const std::string_view sub_d_name = path.substr(0, pos);
         bool found_match = false;
         for (const auto &sub_d : d->subdirectories) {
             if (sub_d->name == sub_d_name) {

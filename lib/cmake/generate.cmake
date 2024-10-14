@@ -52,6 +52,9 @@ function(write_cpp_intro target_name target_path)
 
 #include <array>
 #include <cstddef>
+#include <optional>
+#include <span>
+#include <string_view>
 
 using crl::DirectoryEntry;
 using crl::FileEntry;
@@ -247,10 +250,9 @@ endfunction()
 function(write_gperf_input_file target_name resource_files target_path)
     file(WRITE "${target_path}"
 "%{
-#include <${target_name}.h>
-
 #include <cstring>
 
+// NOLINTBEGIN(misc-unused-parameters, cppcoreguidelines-avoid-goto)
 namespace ${target_name} {
 
 %}
@@ -271,6 +273,8 @@ struct PerfectHashResult { const char *name; std::span<const std::byte> data; };
     endforeach()
 file(APPEND "${target_path}"
 "%%
+// NOLINTEND(misc-unused-parameters, cppcoreguidelines-avoid-goto)
+
 std::optional<std::span<const std::byte>> get_file_ph(std::string_view path) {
     const PerfectHashResult *f = PerfectHash::in_word_set(path.data(), path.size());
     if (f == nullptr) {

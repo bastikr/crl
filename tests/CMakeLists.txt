@@ -1,9 +1,10 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.24)
 project(crl-tests)
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CLANG_TIDY_COMMAND "clang-tidy")
 
 include(FetchContent)
 FetchContent_Declare(
@@ -23,9 +24,13 @@ enable_testing()
 
 add_subdirectory(.. crl)
 
+set_target_properties(crl PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+
 add_executable(test_utils_strv
     "src/test_utils_strv.cpp"
 )
+
+set_target_properties(test_utils_strv PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 
 target_link_libraries(test_utils_strv
     PRIVATE
