@@ -25,6 +25,7 @@ enable_testing()
 add_subdirectory(.. crl)
 
 set_target_properties(crl PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
+set_target_properties(crl_hot_reload PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 
 add_executable(test_utils_strv
     "src/test_utils_strv.cpp"
