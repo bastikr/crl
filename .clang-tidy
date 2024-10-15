@@ -12,15 +12,17 @@ Checks: >
   llvm-*,
   -llvm-header-guard,
   -cppcoreguidelines-pro-type-vararg,
-  -cppcoreguidelines-avoid-const-or-ref-data-members
+  -cppcoreguidelines-avoid-do-while,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
   -fuchsia-default-arguments-calls,
   -cppcoreguidelines-virtual-class-destructor,
+  -cppcoreguidelines-macro-usage,
   -bugprone-easily-swappable-parameters,
   -readability-identifier-length,
   -clang-diagnostic-unused-command-line-argument,
   -modernize-use-trailing-return-type,
   -fuchsia-trailing-return,
+  -fuchsia-statically-constructed-objects,
   -cppcoreguidelines-pro-type-vararg,
   -*-magic-numbers
 WarningsAsErrors: "*"
@@ -40,8 +42,8 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.VariableCase
     value: lower_case
-  # - key: readability-identifier-naming.GlobalVariablePrefix
-  #   value: g_
+  - key: readability-identifier-naming.GlobalVariableCase
+    value: UPPER_CASE
   - key: readability-identifier-naming.MemberCase
     value: lower_case
   - key: readability-identifier-naming.PrivateMemberPrefix

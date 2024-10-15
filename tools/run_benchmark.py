@@ -24,93 +24,12 @@ find_package(benchmark REQUIRED PATHS "../google-benchmark/build")
 
 add_resource_library(assets "{TESTSET_DIR}" GPERF)
 
-add_executable(crl_benchmark main.cpp)
+add_executable(crl_benchmark "{CRL_DIR}/tests/src/bench.cpp")
 target_link_libraries(crl_benchmark
     PRIVATE
         benchmark::benchmark
         assets
 )
-"""
-
-MAIN_CPP_TEMPLATE = """
-#include <benchmark/benchmark.h>
-
-#include <assets.h>
-#include <cstdio>
-#include <string>
-#include <string_view>
-#define CRL_ASSERT(condition)\\
-    do {\\
-        if (!(condition)) {\\
-            std::printf("Assertion failed: (%s), function %s, file %s, line %d.\\n",\\
-                        #condition, __FUNCTION__, __FILE__, __LINE__);\\
-            std::abort();\\
-        }\\
-    } while (false)
-
-static std::string g_PATH;
-static std::array<std::string_view, 4> g_PATHV;
-static bool g_EXISTS;
-
-static void bench_get_file(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file(g_PATH);
-        CRL_ASSERT(r.has_value() == g_EXISTS);
-    }
-}
-
-static void bench_get_filev(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_filev(g_PATHV);
-        CRL_ASSERT(r.has_value() == g_EXISTS);
-    }
-}
-
-static void bench_get_file_ph(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_ph(g_PATH);
-        CRL_ASSERT(r.has_value() == g_EXISTS);
-    }
-}
-
-static void bench_get_file_strcmp(benchmark::State &state) {
-    for (auto _ : state) {
-        auto r = assets::get_file_strcmp(g_PATH);
-        CRL_ASSERT(r.has_value() == g_EXISTS);
-    }
-}
-
-BENCHMARK(bench_get_file);
-BENCHMARK(bench_get_filev);
-BENCHMARK(bench_get_file_ph);
-BENCHMARK(bench_get_file_strcmp);
-
-void usage() { printf("Usage: <path> <exists> [gbench args...]\\n"); }
-
-int main(int argc, char **argv) {
-    if (argc < 3) {
-        usage();
-        return 1;
-    }
-    std::string exists{argv[2]};
-    if (exists == "true") {
-        g_EXISTS = true;
-    } else if (exists == "false") {
-        g_EXISTS = false;
-    } else {
-        usage();
-        return 1;
-    }
-    g_PATH = argv[1];
-    int l = g_PATHV.size() / 4;
-    std::get<0>(g_PATHV) = std::string_view(g_PATH).substr(0, l);
-    std::get<1>(g_PATHV) = std::string_view(g_PATH).substr(l, l);
-    std::get<2>(g_PATHV) = std::string_view(g_PATH).substr(l + l, l);
-    std::get<3>(g_PATHV) = std::string_view(g_PATH).substr(l + l + l);
-
-    benchmark::Initialize(&argc, argv);
-    benchmark::RunSpecifiedBenchmarks();
-}
 """
 
 @dataclass
@@ -191,23 +110,15 @@ def change_last_character(x):
     return x[:-1] + c
 
 def setup_cmake_project(project_dir, testset_name, crl_dir):
-    """
-    Set up a CMake project for the given test set.
-    """
     if project_dir.exists():
         shutil.rmtree(project_dir)
     project_dir.mkdir(parents=True)
 
-    # Write the CMakeLists.txt file
     with open(project_dir / "CMakeLists.txt", "w") as f:
         f.write(CMAKE_TEMPLATE.format(**{
             "CRL_DIR": str(crl_dir),
             "TESTSET_DIR": str(testset_name)
             }))
-
-    # Write the main.cpp file
-    with open(project_dir / "main.cpp", "w") as f:
-        f.write(MAIN_CPP_TEMPLATE)
 
 def build(project_path):
     build_path = project_path / "build"

@@ -52,6 +52,7 @@ target_link_libraries(crl_benchmark
         benchmark::benchmark
         assets
 )
+set_target_properties(crl_benchmark PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_COMMAND}")
 
 include(GoogleTest)
 gtest_discover_tests(test_utils_strv)

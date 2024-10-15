@@ -1,39 +1,53 @@
 #include <benchmark/benchmark.h>
 
+#include <array>
 #include <assets.h>
 #include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <string_view>
 
-static std::string g_PATH;
-static std::array<std::string_view, 4> g_PATHV;
-static bool g_EXISTS;
+#define CRL_ASSERT(condition)                                               \
+    do {                                                                    \
+        if (!(condition)) {                                                 \
+            std::printf(                                                    \
+                "Assertion failed: (%s), function %s, file %s, line %d.\n", \
+                #condition, __FUNCTION__, __FILE__, __LINE__);              \
+            std::abort();                                                   \
+        }                                                                   \
+    } while (false)
 
-static void bench_get_file(benchmark::State &state) {
+namespace {
+
+std::string G_PATH;
+std::array<std::string_view, 4> G_PATHV;
+bool G_EXISTS;
+
+void bench_get_file(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_file(g_PATH);
-        assert(r.has_value() == g_EXISTS);
+        auto r = assets::get_file(G_PATH);
+        CRL_ASSERT(r.has_value() == G_EXISTS);
     }
 }
 
-static void bench_get_filev(benchmark::State &state) {
+void bench_get_filev(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_filev(g_PATHV);
-        assert(r.has_value() == g_EXISTS);
+        auto r = assets::get_filev(G_PATHV);
+        CRL_ASSERT(r.has_value() == G_EXISTS);
     }
 }
 
-static void bench_get_file_ph(benchmark::State &state) {
+void bench_get_file_ph(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_file_ph(g_PATH);
-        assert(r.has_value() == g_EXISTS);
+        auto r = assets::get_file_ph(G_PATH);
+        CRL_ASSERT(r.has_value() == G_EXISTS);
     }
 }
 
-static void bench_get_file_strcmp(benchmark::State &state) {
+void bench_get_file_strcmp(benchmark::State &state) {
     for (auto _ : state) {
-        auto r = assets::get_file_strcmp(g_PATH);
-        assert(r.has_value() == g_EXISTS);
+        auto r = assets::get_file_strcmp(G_PATH);
+        CRL_ASSERT(r.has_value() == G_EXISTS);
     }
 }
 
@@ -44,26 +58,28 @@ BENCHMARK(bench_get_file_strcmp);
 
 void usage() { printf("Usage: <path> <exists> [gperf args...]\n"); }
 
+} // namespace
+
 int main(int argc, char **argv) {
     if (argc != 3) {
         usage();
         return 1;
     }
-    std::string exists{argv[2]};
+    const std::string_view exists{argv[2]};
     if (exists == "true") {
-        g_EXISTS = true;
+        G_EXISTS = true;
     } else if (exists == "false") {
-        g_EXISTS = false;
+        G_EXISTS = false;
     } else {
         usage();
         return 1;
     }
-    g_PATH = argv[1];
-    int l = g_PATHV.size() / 4;
-    std::get<0>(g_PATHV) = std::string_view(g_PATH).substr(0, l);
-    std::get<1>(g_PATHV) = std::string_view(g_PATH).substr(l, l);
-    std::get<2>(g_PATHV) = std::string_view(g_PATH).substr(l + l, l);
-    std::get<3>(g_PATHV) = std::string_view(g_PATH).substr(l + l + l);
+    G_PATH = argv[1];
+    const int l = G_PATHV.size() / 4;
+    std::get<0>(G_PATHV) = std::string_view(G_PATH).substr(0, l);
+    std::get<1>(G_PATHV) = std::string_view(G_PATH).substr(l, l);
+    std::get<2>(G_PATHV) = std::string_view(G_PATH).substr(l + l, l);
+    std::get<3>(G_PATHV) = std::string_view(G_PATH).substr(l + l + l);
 
     benchmark::Initialize(&argc, argv);
     benchmark::RunSpecifiedBenchmarks();
