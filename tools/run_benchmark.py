@@ -2,7 +2,7 @@ import os
 import subprocess
 import shutil
 import sys
-import time
+import json
 from pathlib import Path
 import argparse
 import datetime
@@ -135,7 +135,7 @@ def run_benchmark(project_path, query_path, exists):
         exists_str = "true"
     else:
         exists_str = "false"
-    result = subprocess.run(["./crl_benchmark", query_path, exists_str], cwd=build_path, capture_output=True, text=True, check=True)
+    result = subprocess.run(["./crl_benchmark", query_path, exists_str, "--benchmark_format=json"], cwd=build_path, capture_output=True, text=True, check=True)
     return result.stdout
 
 def run_benchmarks(config: BenchmarkConfig):
@@ -144,7 +144,7 @@ def run_benchmarks(config: BenchmarkConfig):
     for num_files, dir_depth in itertools.product(config.num_files_range, config.dir_depth_range):
         testset_dir = config.benchmark_base_dir / f"testsets_num{num_files}_depth{dir_depth}"
         project_dir = config.benchmark_base_dir / f"projects_num{num_files}_depth{dir_depth}"
-        results_file = config.benchmark_base_dir / f"results_{config.timestamp}_num{num_files}_depth{dir_depth}.csv"
+        results_file = config.benchmark_base_dir / f"results_{config.timestamp}_num{num_files}_depth{dir_depth}.json"
 
         setup_testset(num_files, dir_depth, testset_dir)
 
@@ -162,19 +162,24 @@ def run_benchmarks(config: BenchmarkConfig):
         testfiles = get_sorted_files(testset_dir)
         query_paths = select_equally_spaced_paths(testfiles, 5)
 
-        with open(results_file, "w") as f:
-            for query_path in query_paths:
-                try:
-                    exists = True
-                    output = run_benchmark(project_dir, query_path, exists)
-                    f.write(output)
+        results = []
 
-                    exists = False
-                    output = run_benchmark(project_dir, change_last_character(query_path), exists)
-                    f.write(output)
-                except subprocess.CalledProcessError as e:
-                    print(f"Error while running benchmark for {testset_dir}: {e}")
-                    break;
+        for query_path in query_paths:
+            try:
+                exists = True
+                output = run_benchmark(project_dir, query_path, exists)
+                results.append(json.loads(output))
+
+                exists = False
+                output = run_benchmark(project_dir, change_last_character(query_path), exists)
+                results.append(json.loads(output))
+            except subprocess.CalledProcessError as e:
+                print(f"Error while running benchmark for {testset_dir}: {e}")
+                break;
+
+        with open(results_file, "w") as f:
+            json.dump(results, f)
+
         print(f"Result writtent to {results_file}")
 
 if __name__ == "__main__":
