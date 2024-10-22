@@ -41,7 +41,7 @@ class BenchmarkConfig:
     timestamp: str
 
 def parse_arguments():
-    parser = argparse.ArgumentParser(description="Benchmark CMake projects with generated test sets.")
+    parser = argparse.ArgumentParser(description="Benchmark CMake Resource Library with generated test sets.")
     parser.add_argument("--num-files", type=str, required=True, help="Number of files to generate in the test set (single value or range in the form start:end:step).")
     parser.add_argument("--dir-depth", type=str, required=True, help="Directory depth for the generated test set (single value or range in the form start:end:step).")
     parser.add_argument("--crl-dir", type=Path, required=True, help="Path to the CRL directory to link to the benchmark.")
@@ -62,11 +62,7 @@ def parse_arguments():
     )
 
 def parse_range(value):
-    if ":" in value:
-        start, end, step = map(int, value.split(":"))
-        return range(start, end + 1, step)
-    else:
-        return [int(value)]
+    return [int(x) for x in value.split(',')]
 
 def setup_testset(num_files, dir_depth, testsets_dir):
     if testsets_dir.exists():
@@ -101,7 +97,7 @@ def select_equally_spaced_paths(paths, n):
     if n <= 0:
         return []
     step = len(paths) / n
-    return [paths[int(i * step)] for i in range(n)]
+    return [(int(i * step), paths[int(i * step)]) for i in range(n)]
 
 def change_last_character(x):
     c = 'x'
@@ -126,7 +122,7 @@ def build(project_path):
         shutil.rmtree(build_path)
     build_path.mkdir()
 
-    subprocess.run(["cmake", ".."], cwd=build_path, check=True)
+    subprocess.run(["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."], cwd=build_path, check=True)
     subprocess.run(["cmake", "--build", "."], cwd=build_path, check=True)
 
 def run_benchmark(project_path, query_path, exists):
@@ -146,6 +142,8 @@ def run_benchmarks(config: BenchmarkConfig):
         project_dir = config.benchmark_base_dir / f"projects_num{num_files}_depth{dir_depth}"
         results_file = config.benchmark_base_dir / f"results_{config.timestamp}_num{num_files}_depth{dir_depth}.json"
 
+        testset_params = {"number_of_files": num_files}
+
         setup_testset(num_files, dir_depth, testset_dir)
 
         if not project_dir.exists():
@@ -162,23 +160,38 @@ def run_benchmarks(config: BenchmarkConfig):
         testfiles = get_sorted_files(testset_dir)
         query_paths = select_equally_spaced_paths(testfiles, 5)
 
-        results = []
+        runs = []
 
-        for query_path in query_paths:
+        for (query_path_index, query_path) in query_paths:
+            run_params = {
+                "query_path": query_path,
+                "query_path_index": query_path_index}
             try:
                 exists = True
                 output = run_benchmark(project_dir, query_path, exists)
-                results.append(json.loads(output))
+                runs.append({
+                    **run_params,
+                    "exists": exists,
+                    "benchmark": json.loads(output)
+                })
 
                 exists = False
                 output = run_benchmark(project_dir, change_last_character(query_path), exists)
-                results.append(json.loads(output))
+                runs.append({
+                    **run_params,
+                    "exists": exists,
+                    "benchmark": json.loads(output)
+                })
             except subprocess.CalledProcessError as e:
                 print(f"Error while running benchmark for {testset_dir}: {e}")
                 break;
 
         with open(results_file, "w") as f:
-            json.dump(results, f)
+            json.dump({
+                "timestamp": config.timestamp,
+                "testset": testset_params,
+                "runs": runs}
+                , f)
 
         print(f"Result writtent to {results_file}")
 
