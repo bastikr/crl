@@ -177,7 +177,7 @@ def setup_cmake_project(project_dir: Path, testset_dir: Path, crl_dir: Path):
         )
 
 
-def build(project_path: Path):
+def configure_cmake_project(project_path: Path):
     build_path = project_path / "build"
     if build_path.exists():
         shutil.rmtree(build_path)
@@ -186,6 +186,10 @@ def build(project_path: Path):
     subprocess.run(
         ["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."], cwd=build_path, check=True
     )
+
+
+def build_cmake_project(project_path: Path):
+    build_path = project_path / "build"
     subprocess.run(["cmake", "--build", "."], cwd=build_path, check=True)
 
 
@@ -232,7 +236,8 @@ def run_benchmarks(config: BenchmarkConfig):
         setup_cmake_project(project_dir, testset_dir, config.crl_dir)
 
         try:
-            build(project_dir)
+            configure_cmake_project(project_dir)
+            build_cmake_project(project_dir)
         except subprocess.CalledProcessError as e:
             print(f"Error while building for {testset_dir}: {e}")
             break
