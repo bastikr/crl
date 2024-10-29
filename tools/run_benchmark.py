@@ -7,6 +7,7 @@ from pathlib import Path
 import argparse
 import datetime
 import itertools
+import timeit
 from dataclasses import dataclass
 
 # Define the paths
@@ -177,15 +178,18 @@ def setup_cmake_project(project_dir: Path, testset_dir: Path, crl_dir: Path):
         )
 
 
-def configure_cmake_project(project_path: Path):
+def configure_cmake_project(project_path: Path) -> float:
     build_path = project_path / "build"
     if build_path.exists():
         shutil.rmtree(build_path)
     build_path.mkdir()
 
+    t0 = timeit.default_timer()
     subprocess.run(
         ["cmake", "-DCMAKE_BUILD_TYPE=Release", ".."], cwd=build_path, check=True
     )
+    t1 = timeit.default_timer()
+    return t1 - t0
 
 
 def calculate_testset_stats(base_dir: Path):
@@ -221,9 +225,12 @@ def get_asset_library_size(project_dir: Path) -> int:
     return os.path.getsize(file_path)
 
 
-def build_cmake_project(project_path: Path):
+def build_cmake_project(project_path: Path) -> float:
     build_path = project_path / "build"
+    t0 = timeit.default_timer()
     subprocess.run(["cmake", "--build", "."], cwd=build_path, check=True)
+    t1 = timeit.default_timer()
+    return t1 - t0
 
 
 def run_benchmark(project_path: Path, query_path: str, exists: bool) -> str:
@@ -270,10 +277,11 @@ def run_benchmarks(config: BenchmarkConfig):
 
         gen_code_params = {}
         library_params = {}
+        build_params = {}
 
         try:
-            configure_cmake_project(project_dir)
-            build_cmake_project(project_dir)
+            build_params["configure"] = configure_cmake_project(project_dir)
+            build_params["build"] = build_cmake_project(project_dir)
             gen_code_params["source_size"] = get_generated_source_size(project_dir)
             gen_code_params["header_size"] = get_generated_header_size(project_dir)
             library_params["size"] = get_asset_library_size(project_dir)
@@ -316,6 +324,7 @@ def run_benchmarks(config: BenchmarkConfig):
                     "testset": testset_params,
                     "generated": gen_code_params,
                     "library": library_params,
+                    "build": build_params,
                     "runs": runs,
                 },
                 f,
