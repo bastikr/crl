@@ -188,6 +188,39 @@ def configure_cmake_project(project_path: Path):
     )
 
 
+def calculate_testset_stats(base_dir: Path):
+    total_size = 0
+    total_path_length = 0
+
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            file_path = os.path.join(root, file)
+
+            total_size += os.path.getsize(file_path)
+
+            relative_path = os.path.relpath(file_path, base_dir)
+            total_path_length += len(relative_path)
+    return {
+        "testset_content_size": total_size,
+        "testset_total_path_length": total_path_length,
+    }
+
+
+def get_generated_source_size(project_dir: Path) -> int:
+    file_path = project_dir / "build/assets/src/assets.cpp"
+    return os.path.getsize(file_path)
+
+
+def get_generated_header_size(project_dir: Path) -> int:
+    file_path = project_dir / "build/assets/include/assets.h"
+    return os.path.getsize(file_path)
+
+
+def get_asset_library_size(project_dir: Path) -> int:
+    file_path = project_dir / "build/libassets.a"
+    return os.path.getsize(file_path)
+
+
 def build_cmake_project(project_path: Path):
     build_path = project_path / "build"
     subprocess.run(["cmake", "--build", "."], cwd=build_path, check=True)
@@ -226,18 +259,24 @@ def run_benchmarks(config: BenchmarkConfig):
             / f"results_{config.timestamp}_num{num_files}_depth{dir_depth}.json"
         )
 
-        testset_params = {"number_of_files": num_files}
-
         setup_testset(num_files, dir_depth, testset_dir)
+        testset_params = calculate_testset_stats(testset_dir)
+        testset_params["number_of_files"] = num_files
 
         if not project_dir.exists():
             project_dir.mkdir(parents=True)
 
         setup_cmake_project(project_dir, testset_dir, config.crl_dir)
 
+        gen_code_params = {}
+        library_params = {}
+
         try:
             configure_cmake_project(project_dir)
             build_cmake_project(project_dir)
+            gen_code_params["source_size"] = get_generated_source_size(project_dir)
+            gen_code_params["header_size"] = get_generated_header_size(project_dir)
+            library_params["size"] = get_asset_library_size(project_dir)
         except subprocess.CalledProcessError as e:
             print(f"Error while building for {testset_dir}: {e}")
             break
@@ -275,6 +314,8 @@ def run_benchmarks(config: BenchmarkConfig):
                 {
                     "timestamp": config.timestamp,
                     "testset": testset_params,
+                    "generated": gen_code_params,
+                    "library": library_params,
                     "runs": runs,
                 },
                 f,
